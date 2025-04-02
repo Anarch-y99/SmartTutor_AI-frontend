@@ -1,35 +1,81 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { SchoolYear, Subject, Chapter } from "./types";
+import YearSelector from "./components/YearSelector";
+import SubjectSelector from "./components/SubjectSelector";
+import ChapterSelector from "./components/ChapterSelector";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [years, setYears] = useState<SchoolYear[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [selectedChapter, setSelectedChapter] = useState<string>("");
+
+  // Charger les années au démarrage
+  useEffect(() => {
+    axios.get("/api/years").then((res) => setYears(res.data));
+  }, []);
+
+  // Charger les matières en fonction de l’année
+  useEffect(() => {
+    if (selectedYear) {
+      axios
+        .get(`/api/subjects?yearId=${selectedYear}`)
+        .then((res) => setSubjects(res.data));
+      setSelectedSubject("");
+      setSelectedChapter("");
+      setChapters([]);
+    }
+  }, [selectedYear]);
+
+  // Charger les chapitres en fonction de la matière
+  useEffect(() => {
+    if (selectedSubject) {
+      axios
+        .get(`/api/chapters?subjectId=${selectedSubject}`)
+        .then((res) => setChapters(res.data));
+      setSelectedChapter("");
+    }
+  }, [selectedSubject]);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="app-container">
+      <h1>SmartTutor AI</h1>
+
+      <YearSelector
+        years={years}
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+      />
+      {selectedYear && (
+        <SubjectSelector
+          subjects={subjects}
+          selectedSubject={selectedSubject}
+          setSelectedSubject={setSelectedSubject}
+        />
+      )}
+      {selectedSubject && (
+        <ChapterSelector
+          chapters={chapters}
+          selectedChapter={selectedChapter}
+          setSelectedChapter={setSelectedChapter}
+        />
+      )}
+
+      {selectedChapter && (
+        <button
+          onClick={() =>
+            console.log("Appel API avec le chapitre", selectedChapter)
+          }
+        >
+          Lancer le chatbot
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
