@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import api from "../api";
 
 interface Annee {
   id: number;
@@ -13,7 +12,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     axios
-      .get(api + '/annees')
+      .get("https://anarch-y-smarttutor-ai.hf.space/api/annees")
       .then((res) => {
         setAnnees(res.data);
       });
